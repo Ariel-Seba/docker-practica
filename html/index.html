@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Agenda</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #2d3748; }
+        input { padding: 8px; margin: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 16px; background: #48bb78; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f7fafc; }
+    </style>
+</head>
+<body>
+    <h1>Agenda de Contactos</h1>
+
+    <div>
+        <input id="nombre" placeholder="Nombre">
+        <input id="apellido" placeholder="Apellido">
+        <input id="telefono" placeholder="Teléfono">
+        <button onclick="agregar()">Agregar</button>
+    </div>
+
+    <table>
+        <thead><tr><th>Nombre</th><th>Apellido</th><th>Teléfono</th></tr></thead>
+        <tbody id="lista"></tbody>
+    </table>
+
+    <script>
+        const API = "/api";
+
+        async function cargar() {
+            const res = await fetch(`${API}/contactos`);
+            const data = await res.json();
+            document.getElementById("lista").innerHTML = data.map(c =>
+                `<tr><td>${c.nombre}</td><td>${c.apellido}</td><td>${c.telefono}</td></tr>`
+            ).join("");
+        }
+
+        async function agregar() {
+            const body = {
+                nombre: document.getElementById("nombre").value,
+                apellido: document.getElementById("apellido").value,
+                telefono: document.getElementById("telefono").value
+            };
+            await fetch(`${API}/contactos`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            cargar();
+        }
+
+        cargar();
+    </script>
+</body>
+</html>
+
