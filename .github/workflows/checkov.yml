@@ -18,6 +18,6 @@ jobs:
         uses: bridgecrewio/checkov-action@master
         with:
           directory: .
-          framework: dockerfile,docker_compose
+          framework: dockerfile,yaml
           soft_fail: true
           output_format: cli
