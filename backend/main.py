@@ -2,8 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import psycopg2
 import os
+import redis
+import json
 
 app = FastAPI()
+cache = redis.Redis(host="redis", port=6379, decode_responses=True)
+
 
 def get_conn():
     return psycopg2.connect(
@@ -20,12 +24,18 @@ class Contacto(BaseModel):
 
 @app.get("/contactos")
 def listar():
+    cached = cache.get("contactos")
+    if cached:
+        return json.loads(cached)
     conn = get_conn()
     cur = conn.cursor()
     cur.execute("SELECT id, nombre, apellido, telefono FROM contactos")
     rows = cur.fetchall()
     conn.close()
-    return [{"id": r[0], "nombre": r[1], "apellido": r[2], "telefono": r[3]} for r in rows]
+    result = [{"id": r[0], "nombre": r[1], "apellido": r[2], "telefono": r[3]} for r in rows]
+    cache.set("contactos", json.dumps(result), ex=30)
+    return result
+
 
 @app.post("/contactos")
 def crear(contacto: Contacto):
@@ -37,4 +47,5 @@ def crear(contacto: Contacto):
     )
     conn.commit()
     conn.close()
+    cache.delete("contactos")
     return {"ok": True}
